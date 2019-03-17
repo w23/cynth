@@ -2,13 +2,12 @@ LDFLAGS=-lGL -lX11 -lXfixes -lasound -pthread -lm
 INCLUDES=-Iatto/include
 
 all:
-	make proto
-	make Y
+	make run
 	make clean
 	make -k all
 
-Y: proto
-	./proto &
+run: proto
+	./$? &
 	echo $! > ./.pid
 	inotifywait -e modify -e delete -e move proto.c
 	kill -9 `cat ./.pid`
@@ -22,4 +21,3 @@ clean:
 
 proto: proto.c.o atto/src/app_linux.c.o atto/src/app_x11.c.o
 	gcc ${LDFLAGS} $? -o proto
-
