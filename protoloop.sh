@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 PID=
 
 function trap_ctrlc ()
@@ -10,9 +12,12 @@ function trap_ctrlc ()
 
 trap "trap_ctrlc" 2
 
+CFLAGS=-Iatto/include
+SOURCES="proto.c atto/src/app_linux.c atto/src/app_x11.c"
+
 while [ true ]
 do
-	cc -m32 -Os -ffast-math -mfpmath=387 -march=i486 -lasound -pthread proto.c -lm -o proto
+	cc $CFLAGS -lGL -lX11 -lXfixes -lasound -pthread -lm $SOURCES -o proto
 	if [ $? -eq 0 ]
 	then
 		./proto &
