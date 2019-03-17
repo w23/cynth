@@ -8,16 +8,17 @@ all:
 
 run: proto
 	./$? &
-	echo $! > ./.pid
 	inotifywait -e modify -e delete -e move proto.c
-	kill -9 `cat ./.pid`
-	rm ./.pid
+	killall -9 $?
 
 proto.c.o atto/src/app_linux.c.o atto/src/app_x11.c.o: proto.c atto/src/app_linux.c atto/src/app_x11.c
 	gcc -c ${INCLUDES} `echo $@ | sed 's/\.o//g'` -o $@
 
-clean:
-	rm proto.c.o proto
+clean: proto.c.o proto
+	rm $?
+
+distclean: proto.c.o atto/src/app_linux.c.o atto/src/app_x11.c.o proto
+	rm $?
 
 proto: proto.c.o atto/src/app_linux.c.o atto/src/app_x11.c.o
 	gcc ${LDFLAGS} $? -o proto
