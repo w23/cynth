@@ -1,9 +1,7 @@
 LDFLAGS=-lGL -lX11 -lXfixes -lasound -pthread -lm
 INCLUDES=-Iatto/include
 
-all:
-	make run
-	make clean
+all: run clean
 	make -k all
 
 run: proto
