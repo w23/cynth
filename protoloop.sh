@@ -1,31 +1,35 @@
-#!/bin/bash
+#!/usr/bin/env sh
 
 set -x
 
-PID=
+function notcup() {
+	
+	if [ -f ./.pid ]
+	then if [ -z `cat ./.pid` ]
+		then
+			rm ./.pid
+		else
+			kill -9 `cat ./.pid`
+			rm ./.pid			
+		fi
+	fi
 
-function trap_ctrlc ()
-{
-	[[ -z "${PID}" ]] || kill $PID
-	exit 2
+	make clean
+
 }
 
-trap "trap_ctrlc" 2
-
-CFLAGS=-Iatto/include
-SOURCES="proto.c atto/src/app_linux.c atto/src/app_x11.c"
+trap notcup 2
 
 while [ true ]
 do
-	cc $CFLAGS -lGL -lX11 -lXfixes -lasound -pthread -lm $SOURCES -o proto
-	if [ $? -eq 0 ]
+	make -k all
+	if [ "$?" -eq "0" ]
 	then
 		./proto &
-		PID=$!
+		echo $! > ./.pid
 		inotifywait -e modify -e delete -e move proto.c
-		kill $PID
-		PID=
+		notcup
 	else
-		sleep 1
+		exit 0
 	fi
 done
