@@ -79,7 +79,7 @@ int audioOpen(int samplerate, int channels, void *userdata, audio_callback_f acb
 
 	if (mcb && midi && midi[0] != '\0') {
 		err = snd_rawmidi_open(&audio_.midi, NULL, midi, SND_RAWMIDI_NONBLOCK);
-		if (err < 0) {
+		if (err < 0 || !audio_.midi) {
 			printf("rawmidi_open: %s\n", snd_strerror(err));
 			return -3;
 		}
@@ -103,8 +103,8 @@ int audioOpen(int samplerate, int channels, void *userdata, audio_callback_f acb
 void audioClose() {
 	__atomic_store_n(&audio_.should_exit, 1, __ATOMIC_SEQ_CST);
 	pthread_join(audio_.thread, NULL);
+	snd_rawmidi_close(audio_.midi);
 	snd_pcm_close(audio_.pcm);
-	// TODO Close midi
 }
 #elif defined(_WIN32)
 

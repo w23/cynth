@@ -19,6 +19,7 @@ typedef struct {
 
 const int bass[] = { 3, 5, 0, 0 };
 
+float square(float p) { return p < mctl[21] / 127.f ? -1.f : 1.f; }
 float sine(float p) { return sinf(p * 6.2832f); }
 float tri(float p) { return p; }
 float hash(float p) { return fmodf(sinf(p) * 43758.5453, 1.f); }
@@ -50,7 +51,7 @@ const int peeper[] = {
 };
 
 voice_t voices[] = {
-	{ 0, notes, COUNTOF(notes), 8192, 0, .3f, release, fmodNone, tri },
+	{ 0, notes, COUNTOF(notes), 8192, 0, .3f, release, fmodNone, square },
 	{ 0, bass, COUNTOF(bass), 8192 * 8, 0, .2f, one, fmodNone, sine },
 	{ 0, kick, COUNTOF(kick), 8192 * 4, 8192 * 2, .6f, release2, fmodDrum, sine },
 	{ 0, kick, COUNTOF(kick), 8192 / 2, 0, .1f, release2, fmodNone, hash},

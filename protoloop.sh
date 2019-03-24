@@ -21,7 +21,7 @@ function trap_ctrlc ()
 trap "trap_ctrlc" 2
 
 CFLAGS="-Wall -Werror -Iatto/include"
-SOURCES="protovis.c midi_alsa.c atto/src/app_linux.c atto/src/app_x11.c"
+SOURCES="protovis.c atto/src/app_linux.c atto/src/app_x11.c"
 
 while [ true ]
 do

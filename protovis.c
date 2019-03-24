@@ -27,28 +27,54 @@ static void paint(ATimeUs ts, float dt) {
 	glDrawArrays(GL_LINE_STRIP, 0, VIS_BUF_SIZE);
 }
 
-static void audioCb(void *userdata, float *samples, int nsamples) {
-	MidiEvent me;
-	while (midi_poll(&me)) {
-		switch (me.type) {
-			case MidiControl:
-				fprintf(stderr, "MidiControl ch=%d p=%d v=%d\n", me.channel, me.control.param, me.control.value);
-				break;
-			case MidiNoteOn:
-				fprintf(stderr, "MidiNoteOn ch=%d n=%d v=%d\n", me.channel, me.note.note, me.note.velocity);
-				break;
-			case MidiNoteOff:
-				fprintf(stderr, "MidiNoteOff ch=%d n=%d v=%d\n", me.channel, me.note.note, me.note.velocity);
-				break;
-		}
-	}
+int mctl[128];
 
+static void audioCb(void *userdata, float *samples, int nsamples) {
 	static int counter = 0;
 
 	for (int i = 0; i < nsamples; ++i, ++counter) {
 		samples[i] = sample(counter);
 		vis_buf[vis_buf_pos] = samples[i];
 		vis_buf_pos = (vis_buf_pos + 1) % VIS_BUF_SIZE;
+	}
+}
+
+void midiCb(void *userdata, const unsigned char *data, int bytes) {
+	(void)userdata;
+
+	for (int i = 0; i < bytes; ++i) {
+		const unsigned char b = data[i];
+		if (!(b & 0x80))
+			continue; /* skip unsync data bytes */
+
+		if (bytes - i < 3)
+			break; /* expect at least 2 args */
+
+		int noteon = 0;
+		const int channel = b & 0x0f;
+		switch (b & 0xf0) {
+			case 0x90: /* note on */
+				noteon = 1;
+			case 0x80: /* note off */
+				{
+					const int key = data[i + 1];
+					const int vel = data[i + 2];
+					fprintf(stderr, "MidiNoteO%s ch=%d n=%d v=%d\n", noteon ? "n" : "ff",
+						channel, key, vel);
+					i += 2;
+				}
+				break;
+
+			case 0xb0: /* control change */
+				{
+					const int controller = data[i + 1];
+					const int value = data[i + 2];
+					fprintf(stderr, "MidiControl ch=%d p=%d v=%d\n", channel, controller, value);
+					mctl[controller] = value;
+					i += 2;
+				}
+				break;
+		}
 	}
 }
 
@@ -84,12 +110,9 @@ void attoAppInit(struct AAppProctable *proctable) {
 
 	proctable->paint = paint;
 
-	const char *midi_device = "default";
-	if (!midi_open(midi_device)) {
-		fprintf(stderr, "Unable to open midi device %s\n", midi_device);
+	const char *midi_device = getenv("MIDI");
+	if (!audioOpen(44100, 1, 0, audioCb, midi_device, midiCb)) {
+		fprintf(stderr, "Unable to open audio with MIDI=%s\n", midi_device);
 		aAppTerminate(2);
 	}
-
-	audioOpen(44100, 1, 0, audioCb, NULL, NULL);
-	//audioClose();
 }
