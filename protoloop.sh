@@ -13,7 +13,7 @@ function trap_ctrlc ()
 trap "trap_ctrlc" 2
 
 CFLAGS=-Iatto/include
-SOURCES="proto.c atto/src/app_linux.c atto/src/app_x11.c"
+SOURCES="proto.c protovis.c midi_alsa.c atto/src/app_linux.c atto/src/app_x11.c"
 
 while [ true ]
 do
