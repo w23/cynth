@@ -42,6 +42,7 @@ static void audioCb(void *userdata, float *samples, int nsamples) {
 void midiCb(void *userdata, const unsigned char *data, int bytes) {
 	(void)userdata;
 
+	int updated = 0;
 	for (int i = 0; i < bytes; ++i) {
 		const unsigned char b = data[i];
 		if (!(b & 0x80))
@@ -72,8 +73,17 @@ void midiCb(void *userdata, const unsigned char *data, int bytes) {
 					fprintf(stderr, "MidiControl ch=%d p=%d v=%d\n", channel, controller, value);
 					mctl[controller] = value;
 					i += 2;
+					updated = 1;
 				}
 				break;
+		}
+	}
+
+	if (updated) {
+		FILE *f = fopen("midi.state", "wb");
+		if (f) {
+			fwrite(mctl, sizeof(char), sizeof(mctl), f);
+			fclose(f);
 		}
 	}
 }
@@ -109,6 +119,14 @@ void attoAppInit(struct AAppProctable *proctable) {
 	glEnableVertexAttribArray(sample_index);
 
 	proctable->paint = paint;
+
+	{
+		FILE *f = fopen("midi.state", "rb");
+		if (f) {
+			fread(mctl, sizeof(char), sizeof(mctl), f);
+			fclose(f);
+		}
+	}
 
 	const char *midi_device = getenv("MIDI");
 	if (!audioOpen(44100, 1, 0, audioCb, midi_device, midiCb)) {
