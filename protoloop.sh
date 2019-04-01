@@ -20,7 +20,7 @@ function trap_ctrlc ()
 
 trap "trap_ctrlc" 2
 
-CFLAGS="-Wall -Iatto/include -I."
+CFLAGS="-ggdb3 -Wall -Iatto/include -I."
 SOURCES="protovis.c atto/src/app_linux.c atto/src/app_x11.c"
 
 while [ true ]
