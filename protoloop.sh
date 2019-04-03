@@ -2,6 +2,7 @@
 
 set -x
 
+CYNTH_DIR=$(dirname $0)
 CYNTH=$1
 if [[ -z "${CYNTH}" ]]
 then
@@ -20,8 +21,8 @@ function trap_ctrlc ()
 
 trap "trap_ctrlc" 2
 
-CFLAGS="-ggdb3 -Wall -Iatto/include -I."
-SOURCES="protovis.c atto/src/app_linux.c atto/src/app_x11.c"
+CFLAGS="-ggdb3 -Wall -I$CYNTH_DIR/atto/include -I$CYNTH_DIR"
+SOURCES="$CYNTH_DIR/protovis.c $CYNTH_DIR/atto/src/app_linux.c $CYNTH_DIR/atto/src/app_x11.c"
 
 while [ true ]
 do
