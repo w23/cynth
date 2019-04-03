@@ -10,6 +10,18 @@ then
 	exit 1
 fi
 
+SAMPLERATE=${SAMPLERATE:=44100}
+
+CFLAGS="-ggdb3 -Wall -DSAMPLERATE=$SAMPLERATE -I$CYNTH_DIR/atto/include -I$CYNTH_DIR"
+if [[ -z "${NOVIS}" ]]
+then
+	SOURCES="$CYNTH_DIR/protovis.c $CYNTH_DIR/atto/src/app_linux.c $CYNTH_DIR/atto/src/app_x11.c"
+	LIBS="-lGL -lX11 -lXfixes"
+else
+	SOURCES="$CYNTH_DIR/protonovis.c"
+	LIBS=
+fi
+
 PID=
 
 function trap_ctrlc ()
@@ -21,17 +33,9 @@ function trap_ctrlc ()
 
 trap "trap_ctrlc" 2
 
-CFLAGS="-ggdb3 -Wall -I$CYNTH_DIR/atto/include -I$CYNTH_DIR"
-if [[ -z "${NOVIS}" ]]
-then
-	SOURCES="$CYNTH_DIR/protovis.c $CYNTH_DIR/atto/src/app_linux.c $CYNTH_DIR/atto/src/app_x11.c"
-else
-	SOURCES="$CYNTH_DIR/protonovis.c"
-fi
-
 while [ true ]
 do
-	cc $CFLAGS -lGL -lX11 -lXfixes -lasound -pthread -lm "$CYNTH" $SOURCES -o "$CYNTH.exe"
+	cc $CFLAGS $LIBS -lasound -pthread -lm "$CYNTH" $SOURCES -o "$CYNTH.exe"
 	if [ $? -eq 0 ]
 	then
 		./"$CYNTH".exe &

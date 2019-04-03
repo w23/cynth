@@ -1,4 +1,5 @@
 #pragma once
+#include <math.h>
 
 #define COUNTOF(a) (sizeof(a) / sizeof(*(a)))
 
@@ -20,7 +21,7 @@ float tri(float p) { return 4.f * (fabs(p-.5f)-.25f); }
 
 static float mix(float a, float b, float t) { return a + (b-a)*t; }
 
-#define MTOF(note) (440.f * powf(2.f, note/12.f))
+#define MTOF(note) (44.f * powf(2.f, note/12.f))
 
 typedef struct { float s, x; } FilterHP;
 #define FILTER_HP(name, in, alpha) \

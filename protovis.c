@@ -50,14 +50,6 @@ void attoAppInit(struct AAppProctable *proctable) {
 
 	proctable->paint = paint;
 
-	{
-		FILE *f = fopen("midi.state", "rb");
-		if (f) {
-			fread(mctl, sizeof(char), sizeof(mctl), f);
-			fclose(f);
-		}
-	}
-
 	const char *midi_device = getenv("MIDI");
 	if (!cynthInit(midi_device))
 		aAppTerminate(2);

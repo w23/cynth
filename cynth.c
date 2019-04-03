@@ -1,10 +1,10 @@
 #include "audio.h"
-#include "midi.h"
 
 #define AUDIO_IMPLEMENT
 #include "aud_io.h"
 
-int mctl[128];
+int mctl[128] = {0};
+MidiNoteState mnote = {0};
 
 #define VIS_BUF_SIZE 8192
 static float vis_buf[VIS_BUF_SIZE];
@@ -18,6 +18,7 @@ static void audioCb(void *userdata, float *samples, int nsamples) {
 		samples[i] = sample(counter);
 		vis_buf[vis_buf_pos] = samples[i];
 		vis_buf_pos = (vis_buf_pos + 1) % VIS_BUF_SIZE;
+		mnote.samples_t++;
 	}
 }
 
@@ -42,9 +43,18 @@ static void midiCb(void *userdata, const unsigned char *data, int bytes) {
 				{
 					const int key = data[i + 1];
 					const int vel = data[i + 2];
-					fprintf(stderr, "MidiNoteO%s ch=%d n=%d v=%d\n", noteon ? "n" : "ff",
+					fprintf(stderr, "MidiNoteO%s ch=%d k=%d v=%d\n", noteon ? "n" : "ff",
 						channel, key, vel);
 					i += 2;
+
+					if (noteon) {
+						mnote.gate = 1;
+						mnote.samples_t = 0;
+						mnote.key = key;
+					} else {
+						if (mnote.key == key)
+							mnote.gate = 0;
+					}
 				}
 				break;
 
@@ -71,7 +81,15 @@ static void midiCb(void *userdata, const unsigned char *data, int bytes) {
 }
 
 int cynthInit(const char *midi_device) {
-	if (!audioOpen(44100, 1, 0, audioCb, midi_device, midiCb)) {
+	{
+		FILE *f = fopen("midi.state", "rb");
+		if (f) {
+			fread(mctl, sizeof(char), sizeof(mctl), f);
+			fclose(f);
+		}
+	}
+
+	if (!audioOpen(SAMPLERATE, 1, 0, audioCb, midi_device, midiCb)) {
 		fprintf(stderr, "Unable to open audio with MIDI=%s\n", midi_device);
 		return 0;
 	}
