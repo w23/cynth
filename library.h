@@ -27,8 +27,9 @@ typedef struct { float s, x; } FilterHP;
 #define FILTER_HP(name, in, alpha) \
 	static FilterHP name = {0}; \
 	{ \
-		name.s = alpha * (name.s + in - name.x); \
-		name.x = in; \
+		const float input = in; \
+		name.s = (alpha) * (name.s + input - name.x); \
+		name.x = input; \
 	}
 
 typedef struct { float s; } FilterLP;
